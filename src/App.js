@@ -1,25 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import React, {Suspense,useEffect } from 'react'
+import { HashRouter, Route, Routes,Navigate } from 'react-router-dom'
+import axios from 'axios'
+// Containers
+const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
+const Login = React.lazy(()=>import('./pages/login'))
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+
+const App=()=> {
+    const url = process.env.REACT_APP_API_URL;
+    const token = localStorage.getItem('token');
+    console.log(token)
+    let isAuthenticated=true;
+     if(token==null || token=='null' ){
+        isAuthenticated=false;
+     }
+
+    const testToken=()=>{
+      const config = {
+        headers: {
+          'Authorization': `Token ${token}`,
+        }
+      }
+      axios.get(url+'tryToken/',config)
+      .then((res)=>{
+      })
+      .catch((e)=>{
+        console.log(e.data)
+        isAuthenticated=false;
+        localStorage.removeItem('token')
+        window.location.reload()
+      })
+    }
+    if(isAuthenticated==true){
+        testToken();
+    }
+
+
+    return (
+      <HashRouter>
+        <Suspense >
+          <Routes>
+            <Route path="*" name="Home" element={isAuthenticated?<DefaultLayout />:<Navigate to="/login" />} />
+            <Route exact path='/login' name="Login" element={!isAuthenticated?<Login />:<Navigate to="/" />} />
+          </Routes>
+        </Suspense>
+      </HashRouter>
+    )
+  
 }
 
 export default App;
