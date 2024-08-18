@@ -23,7 +23,7 @@ const App=()=> {
         }
       }
       axios.get(url+'tryToken/',config)
-      .then((res)=>{
+      ?.then((res)=>{
       })
       .catch((e)=>{
         console.log(e.data)

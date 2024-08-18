@@ -120,6 +120,14 @@ const CreateFacture = () => {
         }
       }
 
+      if (name === 'quantity') {
+            const selectedProduct = products.find(p => p.id === updatedProduct.product_id);
+            if (selectedProduct && value > selectedProduct.quantity) {
+                alert(`Quantity exceeds available stock (${selectedProduct.quantity})`);
+                return prevProduct; // Return the previous state without updating
+            }
+        }
+
       if (name === 'quantity' || name === 'price') {
         const quantity = parseFloat(updatedProduct.quantity) || 0;
         const price = parseFloat(updatedProduct.price) || 0;
@@ -144,6 +152,17 @@ const CreateFacture = () => {
       products: [...prevData.products, product],
     }));
     
+
+    setProducts(prevProducts => {
+        return prevProducts.map(x => {
+            if (x.id === product.product_id) {
+                return { ...x, quantity: x.quantity - product.quantity };
+            }
+            return x;
+        });
+    });
+
+
     // Clear product state
     setProduct({
       product_id: '',
@@ -188,7 +207,7 @@ const CreateFacture = () => {
 
   return (
     <Box p={2}>
-      <Typography variant="h5" gutterBottom>Create New Invoice</Typography>
+      <Typography variant="h5" gutterBottom sx={{ textAlign: 'right' }} >إنشاء فاتورة جديدة</Typography>
       <Paper elevation={3} style={{ padding: '16px' }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
@@ -212,8 +231,9 @@ const CreateFacture = () => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Customer"
+                    label="الزبون"
                     variant="outlined"
+                    
                   />
                 )}
               />
@@ -221,7 +241,7 @@ const CreateFacture = () => {
 
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                label="Date de Vente"
+                label="تاريخ البيع"
                 value={invoiceData.created_at}
                 onChange={handleDateChange}
                 renderInput={(params) => (
@@ -236,7 +256,7 @@ const CreateFacture = () => {
               />
             </LocalizationProvider>
             <TextField
-              label="Remise"
+              label="تخفيض"
               name="remise"
               value={invoiceData.remise}
               onChange={handleInvoiceChange}
@@ -248,7 +268,7 @@ const CreateFacture = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Initial Amount"
+              label="دفع مقدم"
               name="init_amount"
               value={invoiceData.init_amount}
               onChange={handleInvoiceChange}
@@ -259,7 +279,7 @@ const CreateFacture = () => {
             />
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                label="Date Debut"
+                label="تاريخ البدأ"
                 value={invoiceData.date_dub}
                 onChange={handleDateDebChange}
                 renderInput={(params) => (
@@ -275,7 +295,7 @@ const CreateFacture = () => {
             </LocalizationProvider>
 
             <TextField
-              label="Installment Period"
+              label="عدد الأقساط"
               name="installment_period"
               value={invoiceData.installment_period}
               onChange={handleInvoiceChange}
@@ -289,13 +309,39 @@ const CreateFacture = () => {
         </Grid>
       </Paper>
 
-      <Box mt={4}>
-        <Typography variant="h6" gutterBottom>Product Details</Typography>
+      <Box mt={4}  sx={{ textAlign: 'right' }}>
+        <Typography variant="h6" gutterBottom sx={{ textAlign: 'right' }}>تفاصيل السلع</Typography>
         <Paper elevation={3} style={{ padding: '16px' }}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
+              <TextField
+                label="السعر"
+                name="price"
+                value={product.price}
+                fullWidth
+                margin="normal"
+                type="number"
+                step="0.01"
+                disabled
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="الكمية"
+                name="quantity"
+                value={product.quantity}
+                onChange={handleProductChange}
+                fullWidth
+                margin="normal"
+                type="number"
+                InputProps={{ inputProps: { min: 1 } }} // Add min value
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+          
+
               <FormControl fullWidth margin="normal">
-                <InputLabel>Product</InputLabel>
+                <InputLabel>المنتج</InputLabel>
                 <Select
                   name="product_id"
                   value={product.product_id}
@@ -309,48 +355,24 @@ const CreateFacture = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Quantity"
-                name="quantity"
-                value={product.quantity}
-                onChange={handleProductChange}
-                fullWidth
-                margin="normal"
-                type="number"
-                InputProps={{ inputProps: { min: 1 } }} // Add min value
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Unit Price"
-                name="price"
-                value={product.price}
-                fullWidth
-                margin="normal"
-                type="number"
-                step="0.01"
-                disabled
-              />
-            </Grid>
           </Grid>
-          <Button onClick={addProduct} variant="contained" color="primary" style={{ marginTop: '20px' }}>
-            Add Product
+          <Button  onClick={addProduct} variant="contained" color="primary" style={{ marginTop: '20px' }}>
+            إضافة الى السلة
           </Button>
         </Paper>
       </Box>
 
       <Box mt={4}>
-        <Typography variant="h6" gutterBottom>Products Added</Typography>
+        <Typography variant="h6" gutterBottom>السلة</Typography>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Product Name</TableCell>
-                <TableCell>Quantity</TableCell>
-                <TableCell>Unit Price</TableCell>
-                <TableCell>Total Price</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell>إسم المنتج</TableCell>
+                <TableCell>الكيمة</TableCell>
+                <TableCell>السعر</TableCell>
+                <TableCell>السعر الإجمالي</TableCell>
+                <TableCell>العمليات</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -368,7 +390,7 @@ const CreateFacture = () => {
                       variant="contained"
                       color="secondary"
                     >
-                      Delete
+                      إزالة
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -377,14 +399,14 @@ const CreateFacture = () => {
           </Table>
         </TableContainer>
         <Box mt={2}>
-          <Typography variant="h6">Total Price: {calculateTotalPrice()}</Typography>
-          <Typography variant="h6">Final Price: {getFinalPrice()}</Typography>
+          <Typography variant="h6" sx={{ textAlign: 'right' }} >السعر الإجمالي: {calculateTotalPrice()}</Typography>
+          <Typography variant="h6"  sx={{ textAlign: 'right' }} >السعر النهائي: {getFinalPrice()}</Typography>
         </Box>
       </Box>
 
-      <Box mt={4}>
+      <Box mt={4}  sx={{ textAlign: 'right' }}>
         <Button onClick={handleSubmit} variant="contained" color="primary">
-          Create Invoice
+          إنشاء الفاتورة
         </Button>
       </Box>
     </Box>

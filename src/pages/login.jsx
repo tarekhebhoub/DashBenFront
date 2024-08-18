@@ -62,12 +62,9 @@ const Login=()=> {
     let password=data.get('password');
 
 
-    login(username, password).then(() => {
+    await login(username, password)
     window.location.reload();
-    }).catch((error) => {
-        console.error('Login failed', error);
-        alert('Invalid credentials');
-    });
+    
 
     // try {
     //   await login(username, password);

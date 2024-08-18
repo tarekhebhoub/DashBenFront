@@ -8,6 +8,7 @@ const Ventes=React.lazy(()=>import('./Ventes/Ventes'))
 const VenteDetail=React.lazy(()=>import('./Ventes/VenteDetails'))
 const CreateFacture=React.lazy(()=>import('./Ventes/CreateFacture'))
 const Clients=React.lazy(()=>import('./Clients/Clients'))
+const Products=React.lazy(()=>import('./Products/Products'))
 
 const routes = [
 
@@ -17,6 +18,8 @@ const routes = [
     {path:'/Ventes/:id',name:'VenteDetail',element:VenteDetail},
     {path:'/CreateVente',name:'CreateVente',element:CreateFacture},
     {path:'/Clients',name:'Clients',element:Clients},
+    {path:'/Products',name:'Products',element:Products},
+
 
 
 

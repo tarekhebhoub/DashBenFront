@@ -6,16 +6,14 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { getVentes,fetchCustomers,CreateClient } from '../../services/data';
+import {  fetchCustomers, CreateClient, updateClient,deleteClient } from '../../services/data';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import { useNavigate } from 'react-router-dom';
 import TablePagination from '@mui/material/TablePagination';
 
-
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
 const Clients = () => {
   const [rows, setRows] = useState([]);
@@ -30,6 +28,8 @@ const Clients = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
 
   const navigate = useNavigate();
 
@@ -56,8 +56,24 @@ const Clients = () => {
   };
 
   const handleCreateNewItem = () => {
-    console.log('Ajouter une Vente');
-    navigate('/CreateClient');
+    setEditMode(false);
+    setNewClient({
+      name: '',
+      ccp: '',
+      phone: '',
+      numCard: '',
+      willaya: '',
+      ville: ''
+    });
+    setOpenDialog(true);
+  };
+
+  const handleClickOpenEdit = (index) => {
+    setSelectedIndex(index);
+    setSelectedClient(rows[index]);
+    setNewClient(rows[index]);
+    setEditMode(true);
+    setOpenDialog(true);
   };
 
   // Pagination handlers
@@ -70,35 +86,29 @@ const Clients = () => {
     setPage(0);
   };
 
-  
   const handleClickDeleteOpen = (index) => {
     setSelectedIndex(index);
     setOpenDeleteDialog(true);
   };
 
-
-    const [newClient, setNewClient] = useState({
+  const [newClient, setNewClient] = useState({
     name: '',
     ccp: '',
-    phoneNumber: '',
+    phone: '',
     numCard: '',
     willaya: '',
     ville: ''
   });
 
-  const handleClickOpen = () => {
-    setOpenDialog(true);
-  };
-
   const handleClose = () => {
     setNewClient({
       name: '',
       ccp: '',
-      phoneNumber: '',
+      phone: '',
       numCard: '',
       willaya: '',
-      ville: ''      
-    })
+      ville: ''
+    });
     setOpenDialog(false);
   };
 
@@ -111,55 +121,42 @@ const Clients = () => {
   };
 
   const handleAddClient = async () => {
-
-
-  
     try {
-      const addedClient=await CreateClient(newClient);
+      const addedClient = await CreateClient(newClient);
       setRows(prevData => [...prevData, addedClient]);
-
-
-      
-
       console.log('Data sent successfully');
     } catch (error) {
       console.error('Error sending data:', error);
     }
 
-    setOpenDialog(false);
-      setNewClient({
-        name: '',
-        ccp: '',
-        phoneNumber: '',
-        numCard: '',
-        willaya: '',
-        ville: ''
-      });
-      
+    handleClose();
   };
 
+  const handleEditClient = async () => {
+    try { 
+      const updatedClient = await updateClient(selectedClient.id, newClient);
+      setRows(prevData =>
+        prevData.map((client, i) =>
+          i === selectedIndex ? updatedClient : client
+        )
+      );
+      console.log('Data updated successfully');
+    } catch (error) {
+      console.error('Error updating data:', error);
+    }
 
-   
-
-
-
-
-
-
-
-
-
-
+    handleClose();
+  };
 
   const handleDeleteClose = () => {
     setOpenDeleteDialog(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async() => {
+    await deleteClient(rows[selectedIndex].id);
     setRows(prevData => prevData.filter((_, i) => i !== selectedIndex));
     setOpenDeleteDialog(false);
   };
-
 
   // Paginate filtered rows
   const paginatedRows = filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -168,31 +165,31 @@ const Clients = () => {
     <>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} mt={2}>
         <TextField
-          label="Filter"
+          label="بحث"
           variant="outlined"
           value={filterQuery}
           onChange={handleFilterChange}
           sx={{ width: '50%' }}
         />
-        <Button variant="contained" color="primary" onClick={handleClickOpen}>
-          Ajouter une Client
+        <Button variant="contained" color="primary" onClick={handleCreateNewItem}>
+          إضافة عميل جديد
         </Button>
       </Box>
       <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell>Nom de Client</TableCell>
-              <TableCell align="">CCP</TableCell>
-              <TableCell align="">Phone Number</TableCell>
-              <TableCell align="">Numéro de Cart National</TableCell>
-              <TableCell align="">Willaya</TableCell>
-              <TableCell align="">Ville</TableCell>
-              <TableCell align="">Action</TableCell>
+              <TableCell>الإسم واللقب</TableCell>
+              <TableCell align="">رقم الحساب البريدي</TableCell>
+              <TableCell align="">رقم الهاتف</TableCell>
+              <TableCell align="">رقم بطاقة التعريف الوطني</TableCell>
+              <TableCell align="">ولاية الإقامة</TableCell>
+              <TableCell align="">بلدية الإقامة</TableCell>
+              <TableCell align="">العمليات</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedRows.map((row,index) => (
+            {paginatedRows.map((row, index) => (
               <TableRow
                 key={row.ccp}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -200,19 +197,26 @@ const Clients = () => {
                 <TableCell component="th" scope="row">
                   {row.name}
                 </TableCell>
-                
+
                 <TableCell align="">{row.ccp}</TableCell>
                 <TableCell align="">0{row.phone}</TableCell>
                 <TableCell align="">{row.numCard}</TableCell>
                 <TableCell align="">{row.willaya}</TableCell>
-                <TableCell align="">{row.city}</TableCell>
+                <TableCell align="">{row.ville}</TableCell>
                 <TableCell>
+                  <Button
+                    onClick={() => handleClickOpenEdit(index)}
+                    variant="contained"
+                    color="primary"
+                  >
+                    تعديل
+                  </Button>
                   <Button
                     onClick={() => handleClickDeleteOpen(index)}
                     variant="contained"
                     color="secondary"
                   >
-                    Delete
+                    إزالة
                   </Button>
                 </TableCell>
 
@@ -236,34 +240,33 @@ const Clients = () => {
         open={openDeleteDialog}
         onClose={handleDeleteClose}
       >
-      
-      <DialogTitle>{"Confirm Delete"}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          Are you sure you want to delete this client?
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleDeleteClose} color="primary">
-          Cancel
-        </Button>
-        <Button onClick={handleConfirmDelete} color="secondary" autoFocus>
-          Delete
-        </Button>
-      </DialogActions>
-      </Dialog>
 
-
-      <Dialog open={openDialog}>
-        <DialogTitle>Add New Client</DialogTitle>
+        <DialogTitle>{"تأكيد الحذف"}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Please fill out the form to add a new client.
+            هل أنت متأكد من إزالة هذا الزبون
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteClose} color="primary">
+            إلغاء
+          </Button>
+          <Button onClick={handleConfirmDelete} color="secondary" autoFocus>
+            إزالة
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openDialog} onClose={handleClose}>
+        <DialogTitle>{editMode ? "تعديل بيانات العميل" : "إضافة عميل جديد"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {editMode ? "تعديل بيانات العميل." : "رجاءا قم بملئ معلومات العميل."}
           </DialogContentText>
           <TextField
             autoFocus
             margin="dense"
-            label="Nom de Client"
+            label="الإسم واللقب"
             name="name"
             fullWidth
             value={newClient.name}
@@ -271,31 +274,34 @@ const Clients = () => {
           />
           <TextField
             margin="dense"
-            label="CCP"
+            label="رقم الحساب البريدي"
             name="ccp"
+            type="number"
             fullWidth
             value={newClient.ccp}
             onChange={handleChange}
           />
           <TextField
             margin="dense"
-            label="Phone Number"
-            name="phoneNumber"
+            label="رقم الهاتف"
+            type="number"
+            name="phone"
             fullWidth
-            value={newClient.phoneNumber}
+            value={newClient.phone}
             onChange={handleChange}
           />
           <TextField
             margin="dense"
-            label="Numéro de Cart National"
+            label="رقم بطاقة التعريف الوطني"
             name="numCard"
+            type="number"
             fullWidth
             value={newClient.numCard}
             onChange={handleChange}
           />
           <TextField
             margin="dense"
-            label="Willaya"
+            label="ولاية الإقامة"
             name="willaya"
             fullWidth
             value={newClient.willaya}
@@ -303,7 +309,7 @@ const Clients = () => {
           />
           <TextField
             margin="dense"
-            label="Ville"
+            label="بلدية الإقامة"
             name="ville"
             fullWidth
             value={newClient.ville}
@@ -314,12 +320,12 @@ const Clients = () => {
           <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleAddClient} color="primary">
-            Add
+          <Button onClick={editMode ? handleEditClient : handleAddClient} color="primary">
+            {editMode ? "تعديل" : "إضافة"}
           </Button>
         </DialogActions>
       </Dialog>
-    
+
     </>
   );
 };

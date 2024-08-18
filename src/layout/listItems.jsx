@@ -48,20 +48,29 @@ const MainListItems =()=> {
           <ListItemIcon>
             <DashboardIcon />
           </ListItemIcon>
-          <ListItemText primary="Home" />
+          <ListItemText primary="الصفحة الرئيسية" />
           </ListItemButton>
           <ListItemButton onClick={()=>handleClick('Ventes')}>
             <ListItemIcon>
               <ArchiveIcon />
             </ListItemIcon>
-            <ListItemText primary="Ventes" />
+            <ListItemText primary="المبيعات" />
           </ListItemButton>
           <ListItemButton onClick={()=>handleClick('Clients')}>
             <ListItemIcon>
               <GroupsIcon />
             </ListItemIcon>
-            <ListItemText primary="Clients" />
+            <ListItemText primary="الزبائن" />
           </ListItemButton>
+
+          <ListItemButton onClick={()=>handleClick('Products')}>
+            <ListItemIcon>
+              <InventoryIcon />
+            </ListItemIcon>
+            <ListItemText primary="المخزن" />
+          </ListItemButton>
+
+
         </>
       
     }
